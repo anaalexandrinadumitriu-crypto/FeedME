@@ -1,0 +1,6 @@
+[theme]
+primaryColor="#C77DFF"          # light purple for buttons & accents
+backgroundColor="#2B0A3D"       # deep dark purple background
+secondaryBackgroundColor="#3A0F52"  # slightly lighter panel background
+textColor="#FFFFFF"             # white text for contrast
+font="sans serif"
