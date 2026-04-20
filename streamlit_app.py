@@ -39,6 +39,9 @@ st.markdown(
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
+# Initialize saved ingredients list in session state
+if 'saved_ingredients' not in st.session_state:
+    st.session_state['saved_ingredients'] = []
 
 # Top navigation buttons
 col1, col2, col3 = st.columns(3, gap=None)
@@ -134,8 +137,28 @@ elif st.session_state.page == 'pantry':
     st.subheader("Detected Ingredients:")
     if 'detected_ingredients' in st.session_state:
         st.write(st.session_state['detected_ingredients'])
+        if st.button("Save to Pantry"):
+            # Parse detected ingredients (assuming comma-separated)
+            ingredients_list = [ing.strip() for ing in st.session_state['detected_ingredients'].split(',')]
+            # Add to saved ingredients, avoiding duplicates
+            for ing in ingredients_list:
+                if ing and ing not in st.session_state['saved_ingredients']:
+                    st.session_state['saved_ingredients'].append(ing)
+            st.success("Ingredients saved to pantry!")
     else:
         st.write("No ingredients detected yet. Upload an image or take a photo, then click 'Detect Ingredients' to get started!")
+
+    st.subheader("Saved Ingredients:")
+    if st.session_state['saved_ingredients']:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(", ".join(st.session_state['saved_ingredients']))
+        with col2:
+            if st.button("Clear All"):
+                st.session_state['saved_ingredients'] = []
+                st.rerun()
+    else:
+        st.write("No saved ingredients yet. Detect ingredients from an image and save them!")
 
 # My Recipes page
 elif st.session_state.page == 'recipes':
