@@ -99,6 +99,7 @@ elif st.session_state.page == 'feed_me':
                         max_tokens=1000
                     )
                     recipe = response.choices[0].message.content.strip()
+                    st.session_state['current_recipe'] = recipe
                     st.subheader("Generated Recipe:")
                     st.write(recipe)
                     # Optionally save to recent recipes
@@ -111,6 +112,13 @@ elif st.session_state.page == 'feed_me':
                     st.error(f"Error generating recipe: {str(e)}")
             else:
                 st.error("OpenAI API key not configured. Please set it in st.secrets.")
+
+    if 'current_recipe' in st.session_state:
+        if st.button("Save Recipe"):
+            if 'saved_recipes' not in st.session_state:
+                st.session_state['saved_recipes'] = []
+            st.session_state['saved_recipes'].append(st.session_state['current_recipe'])
+            st.success("Recipe saved!")
 
 # Digital Pantry page
 elif st.session_state.page == 'pantry':
@@ -206,4 +214,11 @@ elif st.session_state.page == 'recipes':
         st.write("No recent recipes yet. Generate some in the Feed Me tab!")
 
     st.subheader("Saved Recipes")
-    st.write("Your liked and saved recipes will appear here...")
+    saved_recipes = st.session_state.get('saved_recipes', [])
+    if saved_recipes:
+        for i, recipe in enumerate(saved_recipes, 1):
+            st.markdown(f"**Saved Recipe {i}:**")
+            st.write(recipe)
+            st.markdown("---")
+    else:
+        st.write("No saved recipes yet. Save some from the Feed Me tab!")
