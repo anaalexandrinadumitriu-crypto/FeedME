@@ -70,14 +70,22 @@ elif st.session_state.page == 'pantry':
     st.header(" Digital Pantry")
     st.write("Take a picture of your ingredients:")
 
-    uploaded_file = st.file_uploader("Upload an image of your food", type=['png', 'jpg', 'jpeg'])
+    tab1, tab2 = st.tabs(["Upload Image", "Take Photo"])
 
-    if uploaded_file is not None:
-        st.image(uploaded_file, caption="Uploaded Image")
+    with tab1:
+        uploaded_file = st.file_uploader("Upload an image of your food", type=['png', 'jpg', 'jpeg'])
+        image_file = uploaded_file
+
+    with tab2:
+        camera_file = st.camera_input("Take a picture with your camera")
+        image_file = camera_file
+
+    if image_file is not None:
+        st.image(image_file, caption="Captured Image")
         st.write("AI would analyze this image to detect ingredients...")
 
     st.subheader("Detected Ingredients:")
-    st.write("No ingredients detected yet. Upload an image to get started!")
+    st.write("No ingredients detected yet. Upload an image or take a photo to get started!")
 
 # My Recipes page
 elif st.session_state.page == 'recipes':
