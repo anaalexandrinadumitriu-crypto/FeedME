@@ -136,9 +136,9 @@ elif st.session_state.page == 'feed_me':
 # Digital Pantry page
 elif st.session_state.page == 'pantry':
     st.header(" Digital Pantry")
-    st.write("Take a picture of your ingredients:")
+    st.write("Add ingredients to your pantry:")
 
-    tab1, tab2 = st.tabs(["Upload Image", "Take Photo"])
+    tab1, tab2, tab3 = st.tabs(["Upload Image", "Take Photo", "Manual Input"])
 
     image_file = None
 
@@ -151,6 +151,76 @@ elif st.session_state.page == 'pantry':
         camera_file = st.camera_input("Take a picture with your camera")
         if camera_file is not None:
             image_file = camera_file
+
+    with tab3:
+        st.write("Type the ingredients you have:")
+        manual_ingredients = st.text_area("Enter ingredients (one per line or comma-separated)", height=150, placeholder="e.g.\nchicken breast\ntomatoes\nonions\n\ngarlic, olive oil, salt")
+        if st.button("Add Ingredients"):
+            if manual_ingredients.strip():
+                # Parse ingredients (split by comma or newline)
+                ingredients_list = []
+                for line in manual_ingredients.split('\n'):
+                    line = line.strip()
+                    if line:
+                        # Split by comma if present
+                        if ',' in line:
+                            ingredients_list.extend([ing.strip() for ing in line.split(',') if ing.strip()])
+                        else:
+                            ingredients_list.append(line)
+                
+                # Add to saved ingredients, avoiding duplicates
+                value = local_storage.getItem('saved_ingredients')
+                if value is None:
+                    saved_ingredients = []
+                else:
+                    saved_ingredients = json.loads(value)
+                added_count = 0
+                for ing in ingredients_list:
+                    if ing and ing not in saved_ingredients:
+                        saved_ingredients.append(ing)
+                        added_count += 1
+                local_storage.setItem('saved_ingredients', json.dumps(saved_ingredients))
+                if added_count > 0:
+                    st.success(f"Added {added_count} ingredient(s) to pantry!")
+                else:
+                    st.info("All ingredients were already in your pantry.")
+            else:
+                st.warning("Please enter some ingredients first.")
+
+    if image_file is not None:
+        st.image(image_file, caption="Captured Image")
+        
+        if st.button("Detect Ingredients"):
+            # Analyze image with OpenAI
+            api_key = st.secrets.get("OPENAI_API_KEY")
+            if api_key:
+                client = OpenAI(api_key=api_key)
+                # Encode image to base64
+                image_bytes = image_file.read()
+                base64_string = base64.b64encode(image_bytes).decode('utf-8')
+                
+                # Prepare message for OpenAI
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Identify the ingredients visible in this image. Return ONLY a comma-separated list of ingredient names with no other text or explanation."},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_string}"}}
+                        ]
+                    }
+                ]
+                
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=messages,
+                        max_tokens=300
+                    )
+                    st.session_state['detected_ingredients'] = response.choices[0].message.content.strip()
+                except Exception as e:
+                    st.session_state['detected_ingredients'] = f"Error analyzing image: {str(e)}"
+            else:
+                st.session_state['detected_ingredients'] = "OpenAI API key not configured. Please set it in st.secrets."
 
     if image_file is not None:
         st.image(image_file, caption="Captured Image")
