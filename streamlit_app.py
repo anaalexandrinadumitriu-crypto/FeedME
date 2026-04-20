@@ -91,13 +91,17 @@ elif st.session_state.page == 'pantry':
 
     tab1, tab2 = st.tabs(["Upload Image", "Take Photo"])
 
+    image_file = None
+
     with tab1:
         uploaded_file = st.file_uploader("Upload an image of your food", type=['png', 'jpg', 'jpeg'])
-        image_file = uploaded_file
+        if uploaded_file is not None:
+            image_file = uploaded_file
 
     with tab2:
         camera_file = st.camera_input("Take a picture with your camera")
-        image_file = camera_file
+        if camera_file is not None:
+            image_file = camera_file
 
     if image_file is not None:
         st.image(image_file, caption="Captured Image")
