@@ -1,5 +1,7 @@
 import streamlit as st
 
+st.set_page_config(layout="wide")
+
 # Global button styling for sharp corners and touching buttons
 st.markdown(
     """
@@ -7,6 +9,8 @@ st.markdown(
     button, .stButton button, .stButton>button, div.stButton>button {
         border-radius: 0 !important;
         margin: 0 !important;
+        height: 60px !important;
+        font-size: 18px !important;
     }
     div.row-widget.stButton {
         margin: 0 !important;
@@ -17,6 +21,12 @@ st.markdown(
     }
     section[data-testid="stHorizontalBlock"], .stColumns {
         gap: 0 !important;
+    }
+    .main .block-container {
+        padding-top: 0rem;
+        padding-bottom: 1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
     </style>
     """,
@@ -43,7 +53,7 @@ with col3:
 if st.session_state.page == 'home':
     col1, col2, col3 = st.columns(3)
     with col2:
-        st.image("Logo.png", width=200)
+        st.image("Logo.png", width=400)
         st.markdown("<div style='text-align: center; font-size: xx-large; font-weight: bold;'>FeedME</div>", unsafe_allow_html=True)
    
 # Feed Me page
