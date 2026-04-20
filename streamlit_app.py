@@ -1,4 +1,6 @@
 import streamlit as st
+from openai import OpenAI
+import base64
 
 st.set_page_config(layout="wide")
 
@@ -96,10 +98,44 @@ elif st.session_state.page == 'pantry':
 
     if image_file is not None:
         st.image(image_file, caption="Captured Image")
-        st.write("AI would analyze this image to detect ingredients...")
+        
+        if st.button("Detect Ingredients"):
+            # Analyze image with OpenAI
+            api_key = st.secrets.get("OPENAI_API_KEY")
+            if api_key:
+                client = OpenAI(api_key=api_key)
+                # Encode image to base64
+                image_bytes = image_file.read()
+                base64_string = base64.b64encode(image_bytes).decode('utf-8')
+                
+                # Prepare message for OpenAI
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Identify the ingredients visible in this image. Return ONLY a comma-separated list of ingredient names with no other text or explanation."},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_string}"}}
+                        ]
+                    }
+                ]
+                
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=messages,
+                        max_tokens=300
+                    )
+                    st.session_state['detected_ingredients'] = response.choices[0].message.content.strip()
+                except Exception as e:
+                    st.session_state['detected_ingredients'] = f"Error analyzing image: {str(e)}"
+            else:
+                st.session_state['detected_ingredients'] = "OpenAI API key not configured. Please set it in st.secrets."
 
     st.subheader("Detected Ingredients:")
-    st.write("No ingredients detected yet. Upload an image or take a photo to get started!")
+    if 'detected_ingredients' in st.session_state:
+        st.write(st.session_state['detected_ingredients'])
+    else:
+        st.write("No ingredients detected yet. Upload an image or take a photo, then click 'Detect Ingredients' to get started!")
 
 # My Recipes page
 elif st.session_state.page == 'recipes':
