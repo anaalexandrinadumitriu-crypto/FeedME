@@ -1,11 +1,34 @@
 import streamlit as st
 
+# Global button styling for sharp corners and touching buttons
+st.markdown(
+    """
+    <style>
+    button, .stButton button, .stButton>button, div.stButton>button {
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+    div.row-widget.stButton {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    div[data-testid="column"] > div {
+        padding: 0 !important;
+    }
+    section[data-testid="stHorizontalBlock"], .stColumns {
+        gap: 0 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
 # Top navigation buttons
-col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3, gap="small")
 with col1:
     if st.button("Feed Me", use_container_width=True):
         st.session_state.page = 'feed_me'
