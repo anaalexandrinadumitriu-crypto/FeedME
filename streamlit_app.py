@@ -82,7 +82,35 @@ elif st.session_state.page == 'feed_me':
         difficulty = st.slider("Cooking Difficulty (1-5)", 1, 5, 3)
 
     if st.button("Generate Recipe", type="primary"):
-        st.write("Recipe generation would happen here...")
+        saved_ingredients = st.session_state.get('saved_ingredients', [])
+        if not saved_ingredients:
+            st.warning("No saved ingredients in your digital pantry. Please add some ingredients first.")
+        else:
+            api_key = st.secrets.get("OPENAI_API_KEY")
+            if api_key:
+                client = OpenAI(api_key=api_key)
+                saved_ings_str = ", ".join(saved_ingredients)
+                prompt = f"Generate a {meal_type} recipe using these ingredients: {saved_ings_str}. Description: {meal_description}. Cooking time: {cooking_time}. Difficulty level: {difficulty}/5. Provide a detailed recipe with title, ingredients list (using the provided ingredients where possible), and step-by-step instructions."
+                messages = [{"role": "user", "content": prompt}]
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=messages,
+                        max_tokens=1000
+                    )
+                    recipe = response.choices[0].message.content.strip()
+                    st.subheader("Generated Recipe:")
+                    st.write(recipe)
+                    # Optionally save to recent recipes
+                    if 'recent_recipes' not in st.session_state:
+                        st.session_state['recent_recipes'] = []
+                    st.session_state['recent_recipes'].append(recipe)
+                    if len(st.session_state['recent_recipes']) > 5:
+                        st.session_state['recent_recipes'] = st.session_state['recent_recipes'][-5:]
+                except Exception as e:
+                    st.error(f"Error generating recipe: {str(e)}")
+            else:
+                st.error("OpenAI API key not configured. Please set it in st.secrets.")
 
 # Digital Pantry page
 elif st.session_state.page == 'pantry':
@@ -168,7 +196,14 @@ elif st.session_state.page == 'pantry':
 elif st.session_state.page == 'recipes':
     st.header(" My Recipes")
     st.subheader("Recent Recipes")
-    st.write("Your 5 most recent recipes will appear here...")
+    recent_recipes = st.session_state.get('recent_recipes', [])
+    if recent_recipes:
+        for i, recipe in enumerate(reversed(recent_recipes), 1):
+            st.markdown(f"**Recipe {i}:**")
+            st.write(recipe)
+            st.markdown("---")
+    else:
+        st.write("No recent recipes yet. Generate some in the Feed Me tab!")
 
     st.subheader("Saved Recipes")
     st.write("Your liked and saved recipes will appear here...")
