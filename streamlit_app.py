@@ -1,6 +1,10 @@
 import streamlit as st
 from openai import OpenAI
 import base64
+import json
+from streamlit_local_storage import LocalStorage
+
+local_storage = LocalStorage()
 
 st.set_page_config(layout="wide")
 
@@ -39,9 +43,6 @@ st.markdown(
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
-# Initialize saved ingredients list in session state
-if 'saved_ingredients' not in st.session_state:
-    st.session_state['saved_ingredients'] = []
 
 # Top navigation buttons
 col1, col2, col3 = st.columns(3, gap=None)
@@ -82,7 +83,11 @@ elif st.session_state.page == 'feed_me':
         difficulty = st.slider("Cooking Difficulty (1-5)", 1, 5, 3)
 
     if st.button("Generate Recipe", type="primary"):
-        saved_ingredients = st.session_state.get('saved_ingredients', [])
+        value = local_storage.getItem('saved_ingredients')
+        if value is None:
+            saved_ingredients = []
+        else:
+            saved_ingredients = json.loads(value)
         if not saved_ingredients:
             st.warning("No saved ingredients in your digital pantry. Please add some ingredients first.")
         else:
@@ -103,11 +108,15 @@ elif st.session_state.page == 'feed_me':
                     st.subheader("Generated Recipe:")
                     st.write(recipe)
                     # Optionally save to recent recipes
-                    if 'recent_recipes' not in st.session_state:
-                        st.session_state['recent_recipes'] = []
-                    st.session_state['recent_recipes'].append(recipe)
-                    if len(st.session_state['recent_recipes']) > 5:
-                        st.session_state['recent_recipes'] = st.session_state['recent_recipes'][-5:]
+                    value = local_storage.getItem('recent_recipes')
+                    if value is None:
+                        recent_recipes = []
+                    else:
+                        recent_recipes = json.loads(value)
+                    recent_recipes.append(recipe)
+                    if len(recent_recipes) > 5:
+                        recent_recipes = recent_recipes[-5:]
+                    local_storage.setItem('recent_recipes', json.dumps(recent_recipes))
                 except Exception as e:
                     st.error(f"Error generating recipe: {str(e)}")
             else:
@@ -115,9 +124,13 @@ elif st.session_state.page == 'feed_me':
 
     if 'current_recipe' in st.session_state:
         if st.button("Save Recipe"):
-            if 'saved_recipes' not in st.session_state:
-                st.session_state['saved_recipes'] = []
-            st.session_state['saved_recipes'].append(st.session_state['current_recipe'])
+            value = local_storage.getItem('saved_recipes')
+            if value is None:
+                saved_recipes = []
+            else:
+                saved_recipes = json.loads(value)
+            saved_recipes.append(st.session_state['current_recipe'])
+            local_storage.setItem('saved_recipes', json.dumps(saved_recipes))
             st.success("Recipe saved!")
 
 # Digital Pantry page
@@ -181,21 +194,32 @@ elif st.session_state.page == 'pantry':
             # Parse detected ingredients (assuming comma-separated)
             ingredients_list = [ing.strip() for ing in st.session_state['detected_ingredients'].split(',')]
             # Add to saved ingredients, avoiding duplicates
+            value = local_storage.getItem('saved_ingredients')
+            if value is None:
+                saved_ingredients = []
+            else:
+                saved_ingredients = json.loads(value)
             for ing in ingredients_list:
-                if ing and ing not in st.session_state['saved_ingredients']:
-                    st.session_state['saved_ingredients'].append(ing)
+                if ing and ing not in saved_ingredients:
+                    saved_ingredients.append(ing)
+            local_storage.setItem('saved_ingredients', json.dumps(saved_ingredients))
             st.success("Ingredients saved to pantry!")
     else:
         st.write("No ingredients detected yet. Upload an image or take a photo, then click 'Detect Ingredients' to get started!")
 
     st.subheader("Saved Ingredients:")
-    if st.session_state['saved_ingredients']:
+    value = local_storage.getItem('saved_ingredients')
+    if value is None:
+        saved_ingredients = []
+    else:
+        saved_ingredients = json.loads(value)
+    if saved_ingredients:
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.write(", ".join(st.session_state['saved_ingredients']))
+            st.write(", ".join(saved_ingredients))
         with col2:
             if st.button("Clear All"):
-                st.session_state['saved_ingredients'] = []
+                local_storage.setItem('saved_ingredients', json.dumps([]))
                 st.rerun()
     else:
         st.write("No saved ingredients yet. Detect ingredients from an image and save them!")
@@ -204,7 +228,11 @@ elif st.session_state.page == 'pantry':
 elif st.session_state.page == 'recipes':
     st.header(" My Recipes")
     st.subheader("Recent Recipes")
-    recent_recipes = st.session_state.get('recent_recipes', [])
+    value = local_storage.getItem('recent_recipes')
+    if value is None:
+        recent_recipes = []
+    else:
+        recent_recipes = json.loads(value)
     if recent_recipes:
         for i, recipe in enumerate(reversed(recent_recipes), 1):
             st.markdown(f"**Recipe {i}:**")
@@ -214,7 +242,11 @@ elif st.session_state.page == 'recipes':
         st.write("No recent recipes yet. Generate some in the Feed Me tab!")
 
     st.subheader("Saved Recipes")
-    saved_recipes = st.session_state.get('saved_recipes', [])
+    value = local_storage.getItem('saved_recipes')
+    if value is None:
+        saved_recipes = []
+    else:
+        saved_recipes = json.loads(value)
     if saved_recipes:
         for i, recipe in enumerate(saved_recipes, 1):
             st.markdown(f"**Saved Recipe {i}:**")
