@@ -30,11 +30,11 @@ if 'page' not in st.session_state:
 # Top navigation buttons
 col1, col2, col3 = st.columns(3, gap="small")
 with col1:
-    if st.button("Feed Me", use_container_width=True):
-        st.session_state.page = 'feed_me'
-with col2:
     if st.button("Digital Pantry", use_container_width=True):
         st.session_state.page = 'pantry'
+with col2:
+    if st.button("Feed Me", use_container_width=True):
+        st.session_state.page = 'feed_me'
 with col3:
     if st.button("My Recipes", use_container_width=True):
         st.session_state.page = 'recipes'
