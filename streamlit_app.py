@@ -98,25 +98,26 @@ elif st.session_state.page == 'feed_me':
                 prompt = f"Generate a {meal_type} recipe using these ingredients: {saved_ings_str}. Description: {meal_description}. Cooking time: {cooking_time}. Difficulty level: {difficulty}/5. Provide a detailed recipe with title, ingredients list (using the provided ingredients where possible), and step-by-step instructions."
                 messages = [{"role": "user", "content": prompt}]
                 try:
-                    response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=messages,
-                        max_tokens=1000
-                    )
-                    recipe = response.choices[0].message.content.strip()
-                    st.session_state['current_recipe'] = recipe
-                    st.subheader("Generated Recipe:")
-                    st.write(recipe)
-                    # Optionally save to recent recipes
-                    value = local_storage.getItem('recent_recipes')
-                    if value is None:
-                        recent_recipes = []
-                    else:
-                        recent_recipes = json.loads(value)
-                    recent_recipes.append(recipe)
-                    if len(recent_recipes) > 5:
-                        recent_recipes = recent_recipes[-5:]
-                    local_storage.setItem('recent_recipes', json.dumps(recent_recipes))
+                    with st.spinner("Generating recipe..."):
+                        response = client.chat.completions.create(
+                            model="gpt-4o",
+                            messages=messages,
+                            max_tokens=1000
+                        )
+                        recipe = response.choices[0].message.content.strip()
+                        st.session_state['current_recipe'] = recipe
+                        st.subheader("Generated Recipe:")
+                        st.write(recipe)
+                        # Optionally save to recent recipes
+                        value = local_storage.getItem('recent_recipes')
+                        if value is None:
+                            recent_recipes = []
+                        else:
+                            recent_recipes = json.loads(value)
+                        recent_recipes.append(recipe)
+                        if len(recent_recipes) > 5:
+                            recent_recipes = recent_recipes[-5:]
+                        local_storage.setItem('recent_recipes', json.dumps(recent_recipes))
                 except Exception as e:
                     st.error(f"Error generating recipe: {str(e)}")
             else:
@@ -211,47 +212,13 @@ elif st.session_state.page == 'pantry':
                 ]
                 
                 try:
-                    response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=messages,
-                        max_tokens=300
-                    )
-                    st.session_state['detected_ingredients'] = response.choices[0].message.content.strip()
-                except Exception as e:
-                    st.session_state['detected_ingredients'] = f"Error analyzing image: {str(e)}"
-            else:
-                st.session_state['detected_ingredients'] = "OpenAI API key not configured. Please set it in st.secrets."
-
-    if image_file is not None:
-        st.image(image_file, caption="Captured Image")
-        
-        if st.button("Detect Ingredients"):
-            # Analyze image with OpenAI
-            api_key = st.secrets.get("OPENAI_API_KEY")
-            if api_key:
-                client = OpenAI(api_key=api_key)
-                # Encode image to base64
-                image_bytes = image_file.read()
-                base64_string = base64.b64encode(image_bytes).decode('utf-8')
-                
-                # Prepare message for OpenAI
-                messages = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": "Identify the ingredients visible in this image. Return ONLY a comma-separated list of ingredient names with no other text or explanation."},
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_string}"}}
-                        ]
-                    }
-                ]
-                
-                try:
-                    response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=messages,
-                        max_tokens=300
-                    )
-                    st.session_state['detected_ingredients'] = response.choices[0].message.content.strip()
+                    with st.spinner("Analyzing image..."):
+                        response = client.chat.completions.create(
+                            model="gpt-4o",
+                            messages=messages,
+                            max_tokens=300
+                        )
+                        st.session_state['detected_ingredients'] = response.choices[0].message.content.strip()
                 except Exception as e:
                     st.session_state['detected_ingredients'] = f"Error analyzing image: {str(e)}"
             else:
