@@ -9,8 +9,9 @@ st.markdown(
     button, .stButton button, .stButton>button, div.stButton>button {
         border-radius: 0 !important;
         margin: 0 !important;
-        height: 60px !important;
+        height: 90px !important;
         font-size: 18px !important;
+        zoom: 1.3 !important;
     }
     div.row-widget.stButton {
         margin: 0 !important;
@@ -38,7 +39,7 @@ if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
 # Top navigation buttons
-col1, col2, col3 = st.columns(3, gap="small")
+col1, col2, col3 = st.columns(3, gap=None)
 with col1:
     if st.button("Digital Pantry", use_container_width=True):
         st.session_state.page = 'pantry'
