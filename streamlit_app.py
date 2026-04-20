@@ -67,12 +67,15 @@ elif st.session_state.page == 'feed_me':
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        difficulty = st.slider("Cooking Difficulty (1-5)", 1, 5, 3)
+        meal_type = st.selectbox("Meal type", ["Meal", "Snack", "Dessert"])
     with col2:
-        time_options = ["Quick (< 30 min)", "Medium (30-60 min)", "Long (> 60 min)"]
+        if meal_type == "Snack":
+            time_options = ["Quick (< 10 min)", "Medium (10-30 min)", "Long (> 30 min)"]
+        else:
+            time_options = ["Quick (< 30 min)", "Medium (30-60 min)", "Long (> 60 min)"]
         cooking_time = st.selectbox("How long should it take?", time_options)
     with col3:
-        meal_type = st.selectbox("Meal type", ["Meal", "Snack", "Dessert"])
+        difficulty = st.slider("Cooking Difficulty (1-5)", 1, 5, 3)
 
     if st.button("Generate Recipe", type="primary"):
         st.write("Recipe generation would happen here...")
