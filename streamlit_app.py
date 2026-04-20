@@ -25,7 +25,7 @@ if st.session_state.page == 'home':
    
 # Feed Me page
 elif st.session_state.page == 'feed_me':
-    st.header("🍽️ Feed Me")
+    st.header(" Feed Me")
     st.write("Describe what kind of meal you want:")
 
     meal_description = st.text_area("What are you in the mood for?", height=100)
@@ -44,7 +44,7 @@ elif st.session_state.page == 'feed_me':
 
 # Digital Pantry page
 elif st.session_state.page == 'pantry':
-    st.header("🏪 Digital Pantry")
+    st.header(" Digital Pantry")
     st.write("Take a picture of your ingredients:")
 
     uploaded_file = st.file_uploader("Upload an image of your food", type=['png', 'jpg', 'jpeg'])
@@ -58,7 +58,7 @@ elif st.session_state.page == 'pantry':
 
 # My Recipes page
 elif st.session_state.page == 'recipes':
-    st.header("📖 My Recipes")
+    st.header(" My Recipes")
     st.subheader("Recent Recipes")
     st.write("Your 5 most recent recipes will appear here...")
 
